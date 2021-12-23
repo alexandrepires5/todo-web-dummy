@@ -5,6 +5,8 @@ from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
 from .forms import TodoForm
 from .models import Todo
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 
 def signupuser(request):
@@ -28,11 +30,19 @@ def signupuser(request):
                                                             })
 
 
+@login_required
 def currenttodos(request):
     todos = Todo.objects.filter(user=request.user, date_completed__isnull=True)
     return render(request, "todo/currenttodos.html", {"todos": todos})
 
 
+@login_required
+def completedtodos(request):
+    todos = Todo.objects.filter(user=request.user, date_completed__isnull=False).ordered_by("-date_completed")
+    return render(request, "todo/completedtodos.html", {"todos": todos})
+
+
+@login_required
 def viewtodo(request, todo_pk):
     todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
     if request.method == "GET":
@@ -47,7 +57,29 @@ def viewtodo(request, todo_pk):
             return render(request, "todo/viewtodo.html", {"todo": todo, "form": form, "error": "Bad info"})
 
 
+@login_required
+def completetodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == "POST":
+        todo.date_completed = timezone.now()
+        todo.save()
+        return redirect("currenttodos")
+    else:
+        pass
 
+
+@login_required
+def deletetodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == "POST":
+        todo.date_completed = timezone.now()
+        todo.delete()
+        return redirect("currenttodos")
+    else:
+        pass
+
+
+@login_required
 def logoutuser(request):
     if request.method == "POST":
         logout(request)
@@ -72,6 +104,7 @@ def loginuser(request):
             return redirect("currenttodos")
 
 
+@login_required
 def createtodo(request):
     if request.method == "GET":
         return render(request, "todo/createtodo.html", {"form": TodoForm()})
