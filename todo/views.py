@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 
 
 def signupuser(request):
@@ -25,5 +25,16 @@ def signupuser(request):
             return render(request, "todo/signupuser.html", {"form": UserCreationForm(), "error": "Passwords didnt match"
                                                             })
 
+
 def currenttodos(request):
     return render(request, "todo/currenttodos.html")
+
+
+def logoutuser(request):
+    if request.method == "POST":
+        logout(request)
+        return redirect("home")
+
+
+def home(request):
+    return render(request, "todo/home.html")
